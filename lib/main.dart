@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,10 +15,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Actividad 1 - App Personal',
+      title: 'Mi Perfil Premium',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1A237E),
+          brightness: Brightness.dark,
+        ),
+        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
       ),
       home: const MainScreen(),
     );
@@ -31,14 +39,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // Lista de las diferentes secciones de la app
-  final List<Widget> _widgetOptions = <Widget>[
-    const ProfileSection(),
-    const GallerySection(),
-    const BlogSection(),
-    const PetSection(),
-  ];
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -47,46 +47,144 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> widgetOptions = [
+      const ProfileSection(),
+      const PetSection(),
+    ];
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mi App Personal'),
-        centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: AppBar(
+              title: Text(
+                'STUDIO PERSONAL',
+                style: GoogleFonts.orbitron(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+              ),
+              centerTitle: true,
+              backgroundColor: Colors.white.withOpacity(0.05),
+              elevation: 0,
+            ),
+          ),
+        ),
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _widgetOptions,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Yo',
+      body: Stack(
+        children: [
+          // Fondo Premium (Mesh Gradient effect)
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF0F2027),
+                  Color(0xFF203A43),
+                  Color(0xFF2C5364),
+                ],
+              ),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.photo_library),
-            label: 'Galería',
+          Positioned(
+            top: -100,
+            right: -50,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.blueAccent.withOpacity(0.1),
+              ),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.article),
-            label: 'Blog',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.pets),
-            label: 'Mascota',
+          SafeArea(
+            child: IndexedStack(
+              index: _selectedIndex,
+              children: widgetOptions,
+            ),
           ),
         ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
+      ),
+      bottomNavigationBar: GlassNavigationBar(
+        selectedIndex: _selectedIndex,
         onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
       ),
     );
   }
 }
 
-// Wiget para mostrar una colección de imágenes
+class GlassNavigationBar extends StatelessWidget {
+  final int selectedIndex;
+  final Function(int) onTap;
+
+  const GlassNavigationBar({
+    super.key,
+    required this.selectedIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            height: 70,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(Icons.person_outline, Icons.person, 'Yo', 0),
+                _buildNavItem(Icons.pets_outlined, Icons.pets, 'Mascotas', 1),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, IconData activeIcon, String label, int index) {
+    bool isSelected = selectedIndex == index;
+    return GestureDetector(
+      onTap: () => onTap(index),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            isSelected ? activeIcon : icon,
+            color: isSelected ? Colors.blueAccent : Colors.white70,
+            size: 28,
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.blueAccent : Colors.white70,
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class ImageCollection extends StatelessWidget {
   final String title;
   final List<String> imageUrls;
@@ -99,187 +197,212 @@ class ImageCollection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           child: Text(
-            title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            title.toUpperCase(),
+            style: GoogleFonts.montserrat(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5,
+              color: Colors.blueAccent[100],
+            ),
           ),
         ),
         SizedBox(
-          height: 180,
+          height: 220,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: imageUrls.length,
             itemBuilder: (context, index) {
+              final url = imageUrls[index];
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12.0),
-                  child: imageUrls[index].startsWith('http')
-                      ? Image.network(
-                          imageUrls[index],
-                          width: 250,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              width: 250,
-                              color: Colors.grey[200],
-                              child: const Center(child: CircularProgressIndicator()),
-                            );
-                          },
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            width: 250,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.broken_image, size: 50),
-                          ),
-                        )
-                      : Image.asset(
-                          imageUrls[index],
-                          width: 250,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            width: 250,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.broken_image, size: 50),
-                          ),
-                        ),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Container(
+                  width: 300,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: _buildImage(url),
+                  ),
                 ),
               );
             },
           ),
         ),
+        const SizedBox(height: 10),
       ],
     );
   }
+
+  Widget _buildImage(String url) {
+    try {
+      if (url.startsWith('http')) {
+        return Image.network(url, fit: BoxFit.cover);
+      } else if (url.startsWith('assets/')) {
+        return Image.asset(url, fit: BoxFit.cover);
+      } else {
+        return Image.file(File(url), fit: BoxFit.cover);
+      }
+    } catch (e) {
+      return Container(
+        color: Colors.white10,
+        child: const Icon(Icons.broken_image, color: Colors.white24, size: 50),
+      );
+    }
+  }
 }
 
-// Sección "Yo" (Perfil)
 class ProfileSection extends StatelessWidget {
   const ProfileSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 60,
-            backgroundImage: NetworkImage(''),
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [Colors.blueAccent, Colors.purpleAccent],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blueAccent.withOpacity(0.5),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: const CircleAvatar(
+              radius: 90,
+              backgroundColor: Colors.black,
+              backgroundImage: AssetImage('assets/img/yo/WhatsApp Image 2026-08-23 at 18.54.09.jpeg'),
+            ),
           ),
-          SShift(height: 20),
-          Text('Joseph Zambrano', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-          Text('Ing. en Sistemas Inteligentes', style: TextStyle(fontSize: 16, color: Colors.grey)),
+          const SizedBox(height: 30),
+          Text(
+            'JOSEPH ZAMBRANO',
+            style: GoogleFonts.montserrat(
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 2,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.blueAccent.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+            ),
+            child: Text(
+              'Ing. en Sistemas Inteligentes',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                color: Colors.blueAccent[100],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
+class PetSection extends StatefulWidget {
+  const PetSection({super.key});
 
-class SShift extends StatelessWidget {
-  final double height;
-  const SShift({super.key, required this.height});
   @override
-  Widget build(BuildContext context) => SizedBox(height: height);
+  State<PetSection> createState() => _PetSectionState();
 }
 
-// Sección Galería
-class GallerySection extends StatelessWidget {
-  const GallerySection({super.key});
+class _PetSectionState extends State<PetSection> {
+  final Map<String, List<String>> _petCollections = {
+    'Dothy': ['assets/pets/dothy/dothy1.jpg', 'assets/pets/dothy/dothy2.jpg'],
+    'Kira': ['assets/pets/kira/kira1.jpg', 'assets/pets/kira/kira2.jpg', 'assets/pets/kira/kira3.jpg'],
+    'Chocolate': ['assets/pets/chocolate/choc1.jpg', 'assets/pets/chocolate/choc2.jpg'],
+  };
 
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      children: const [
-        ImageCollection(
-          title: 'Viajes Recientes',
-          imageUrls: [
-            '',
-            '',
-            '',
-          ],
-        ),
-        ImageCollection(
-          title: '',
-          imageUrls: [
-            '',
-            '',
-            '',
-          ],
-        ),
-        ImageCollection(
-          title: 'Pasatiempos',
-          imageUrls: [
-            '',
-            '',
-            '',
-          ],
-        ),
-        SizedBox(height: 20),
-      ],
-    );
-  }
-}
+  final ImagePicker _picker = ImagePicker();
 
-// Sección Blog (Placeholder)
-class BlogSection extends StatelessWidget {
-  const BlogSection({super.key});
+  Future<void> _addPhoto() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
 
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: 5,
-      itemBuilder: (context, index) {
-        return Card(
-          margin: const EdgeInsets.all(12),
-          child: ListTile(
-            leading: const Icon(Icons.book, size: 40, color: Colors.blue),
-            title: Text('${index + 1}'),
-            subtitle: const Text(''),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {},
+    String? selectedPet = await showGeneralDialog<String>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      pageBuilder: (context, anim1, anim2) => Container(),
+      transitionBuilder: (context, anim1, anim2, child) {
+        return Transform.scale(
+          scale: anim1.value,
+          child: Opacity(
+            opacity: anim1.value,
+            child: SimpleDialog(
+              backgroundColor: const Color(0xFF203A43),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text('Selecciona Colección', style: GoogleFonts.poppins(color: Colors.white)),
+              children: _petCollections.keys.map((String petName) {
+                return SimpleDialogOption(
+                  onPressed: () => Navigator.pop(context, petName),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(petName, style: const TextStyle(color: Colors.white70, fontSize: 16)),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         );
       },
     );
-  }
-}
 
-// Sección Mascota
-class PetSection extends StatelessWidget {
-  const PetSection({super.key});
+    if (selectedPet != null) {
+      setState(() {
+        _petCollections[selectedPet]!.add(image.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: const [
-        ImageCollection(
-          title: 'Dothy',
-          imageUrls: [
-            'assets/pets/dothy/dothy1.jpg',
-            'assets/pets/dothy/dothy2.jpg',
-          ],
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: ListView(
+        padding: const EdgeInsets.only(top: 20, bottom: 100),
+        children: _petCollections.entries.map((entry) {
+          return ImageCollection(
+            title: entry.key,
+            imageUrls: entry.value,
+          );
+        }).toList(),
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: FloatingActionButton.extended(
+          onPressed: _addPhoto,
+          backgroundColor: Colors.blueAccent,
+          icon: const Icon(Icons.add_a_photo, color: Colors.white),
+          label: Text('AÑADIR MOMENTO', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white)),
         ),
-        ImageCollection(
-          title: 'Kira',
-          imageUrls: [
-            'assets/pets/kira/kira1.jpg',
-            'assets/pets/kira/kira2.jpg',
-            'assets/pets/kira/kira3.jpg',
-          ],
-        ),
-        ImageCollection(
-          title: 'Chocolate',
-          imageUrls: [
-            'assets/pets/chocolate/choc1.jpg',
-            'assets/pets/chocolate/choc2.jpg',
-          ],
-        ),
-        SizedBox(height: 20),
-      ],
+      ),
     );
   }
 }

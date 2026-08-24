@@ -29,3 +29,8 @@ En mi caso tuve que reinstalar el NDK de Anroid Studio y reiniciar la computador
 flutter run
 ``` 
 ![Imagen2.png](images/Imagen2.png)
+
+# Fotos Colecciones
+Agregue colecciones para las diferentes fotos que se pueden ver en la aplicación. Estas colecciones están organizadas por categorías y se pueden navegar a través de la interfaz de usuario.
+
+![imagen3.png](images/imagen3.png)
