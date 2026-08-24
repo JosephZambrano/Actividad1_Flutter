@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Mi Perfil Premium',
+      title: 'ACTIVIDAD 1',
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
@@ -62,7 +62,7 @@ class _MainScreenState extends State<MainScreen> {
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: AppBar(
               title: Text(
-                'STUDIO PERSONAL',
+                'Actividad 1',
                 style: GoogleFonts.orbitron(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 2,
@@ -79,16 +79,16 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: Stack(
         children: [
-          // Fondo Premium (Mesh Gradient effect)
+          // Fondo Premium
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF0F2027),
+                  Color(0xDF0F2027),
                   Color(0xFF203A43),
-                  Color(0xFF2C5364),
+                  Color(0xFF2C5374),
                 ],
               ),
             ),
