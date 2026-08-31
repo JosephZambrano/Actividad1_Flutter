@@ -185,11 +185,19 @@ class GlassNavigationBar extends StatelessWidget {
   }
 }
 
+// Modelo para una foto de mascota con descripción
+class PetPhoto {
+  final String path;
+  final String description;
+
+  PetPhoto({required this.path, this.description = ''});
+}
+
 class ImageCollection extends StatelessWidget {
   final String title;
-  final List<String> imageUrls;
+  final List<PetPhoto> photos;
 
-  const ImageCollection({super.key, required this.title, required this.imageUrls});
+  const ImageCollection({super.key, required this.title, required this.photos});
 
   @override
   Widget build(BuildContext context) {
@@ -209,37 +217,59 @@ class ImageCollection extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 220,
+          height: 250, // Aumentado para dejar espacio a la descripción
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: imageUrls.length,
+            itemCount: photos.length,
             itemBuilder: (context, index) {
-              final url = imageUrls[index];
+              final photo = photos[index];
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Container(
-                  width: 300,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 300,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: _buildImage(url),
-                  ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: _buildImage(photo.path),
+                      ),
+                    ),
+                    if (photo.description.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Container(
+                          width: 280,
+                          child: Text(
+                            photo.description,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: Colors.white70,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               );
             },
           ),
         ),
-        const SizedBox(height: 10),
       ],
     );
   }
@@ -333,10 +363,20 @@ class PetSection extends StatefulWidget {
 }
 
 class _PetSectionState extends State<PetSection> {
-  final Map<String, List<String>> _petCollections = {
-    'Dothy': ['assets/pets/dothy/dothy1.jpg', 'assets/pets/dothy/dothy2.jpg'],
-    'Kira': ['assets/pets/kira/kira1.jpg', 'assets/pets/kira/kira2.jpg', 'assets/pets/kira/kira3.jpg'],
-    'Chocolate': ['assets/pets/chocolate/choc1.jpg', 'assets/pets/chocolate/choc2.jpg'],
+  final Map<String, List<PetPhoto>> _petCollections = {
+    'Dothy': [
+      PetPhoto(path: 'assets/pets/dothy/dothy1.jpg', description: 'Mirando por la ventana'),
+      PetPhoto(path: 'assets/pets/dothy/dothy2.jpg', description: 'Siesta profunda')
+    ],
+    'Kira': [
+      PetPhoto(path: 'assets/pets/kira/kira1.jpg', description: 'Jugando en el parque'),
+      PetPhoto(path: 'assets/pets/kira/kira2.jpg', description: 'Mi mejor ángulo'),
+      PetPhoto(path: 'assets/pets/kira/kira3.jpg', description: 'Esperando premios')
+    ],
+    'Chocolate': [
+      PetPhoto(path: 'assets/pets/chocolate/choc1.jpg', description: 'Paseo dominical'),
+      PetPhoto(path: 'assets/pets/chocolate/choc2.jpg', description: 'Haciendo travesuras')
+    ],
   };
 
   final ImagePicker _picker = ImagePicker();
@@ -346,6 +386,7 @@ class _PetSectionState extends State<PetSection> {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image == null) return;
 
+      // Paso 1: Seleccionar Mascota
       String? selectedPet = await showGeneralDialog<String>(
         context: context,
         barrierDismissible: true,
@@ -375,9 +416,47 @@ class _PetSectionState extends State<PetSection> {
         },
       );
 
-      if (selectedPet != null) {
+      if (selectedPet == null) return;
+
+      // Paso 2: Pedir Descripción
+      final TextEditingController descController = TextEditingController();
+      String? description = await showGeneralDialog<String>(
+        context: context,
+        barrierDismissible: false,
+        barrierLabel: '',
+        pageBuilder: (context, anim1, anim2) => Container(),
+        transitionBuilder: (context, anim1, anim2, child) {
+          return Transform.scale(
+            scale: anim1.value,
+            child: Opacity(
+              opacity: anim1.value,
+              child: AlertDialog(
+                backgroundColor: const Color(0xFF203A43),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                title: Text('Añadir Descripción', style: GoogleFonts.poppins(color: Colors.white)),
+                content: TextField(
+                  controller: descController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    hintText: 'Escribe algo sobre la foto...',
+                    hintStyle: TextStyle(color: Colors.white38),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, descController.text),
+                    child: const Text('GUARDAR', style: TextStyle(color: Colors.blueAccent)),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+
+      if (description != null) {
         setState(() {
-          _petCollections[selectedPet]!.add(image.path);
+          _petCollections[selectedPet]!.add(PetPhoto(path: image.path, description: description));
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -411,7 +490,7 @@ class _PetSectionState extends State<PetSection> {
         children: _petCollections.entries.map((entry) {
           return ImageCollection(
             title: entry.key,
-            imageUrls: entry.value,
+            photos: entry.value,
           );
         }).toList(),
       ),
