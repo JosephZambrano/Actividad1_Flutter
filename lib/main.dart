@@ -342,42 +342,63 @@ class _PetSectionState extends State<PetSection> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _addPhoto() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image == null) return;
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image == null) return;
 
-    String? selectedPet = await showGeneralDialog<String>(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: '',
-      pageBuilder: (context, anim1, anim2) => Container(),
-      transitionBuilder: (context, anim1, anim2, child) {
-        return Transform.scale(
-          scale: anim1.value,
-          child: Opacity(
-            opacity: anim1.value,
-            child: SimpleDialog(
-              backgroundColor: const Color(0xFF203A43),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: Text('Selecciona Colección', style: GoogleFonts.poppins(color: Colors.white)),
-              children: _petCollections.keys.map((String petName) {
-                return SimpleDialogOption(
-                  onPressed: () => Navigator.pop(context, petName),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Text(petName, style: const TextStyle(color: Colors.white70, fontSize: 16)),
-                  ),
-                );
-              }).toList(),
+      String? selectedPet = await showGeneralDialog<String>(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: '',
+        pageBuilder: (context, anim1, anim2) => Container(),
+        transitionBuilder: (context, anim1, anim2, child) {
+          return Transform.scale(
+            scale: anim1.value,
+            child: Opacity(
+              opacity: anim1.value,
+              child: SimpleDialog(
+                backgroundColor: const Color(0xFF203A43),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                title: Text('Selecciona Colección', style: GoogleFonts.poppins(color: Colors.white)),
+                children: _petCollections.keys.map((String petName) {
+                  return SimpleDialogOption(
+                    onPressed: () => Navigator.pop(context, petName),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Text(petName, style: const TextStyle(color: Colors.white70, fontSize: 16)),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
+          );
+        },
+      );
+
+      if (selectedPet != null) {
+        setState(() {
+          _petCollections[selectedPet]!.add(image.path);
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Has subido una nueva foto correctamente'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Parece que ocurrió un error'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
           ),
         );
-      },
-    );
-
-    if (selectedPet != null) {
-      setState(() {
-        _petCollections[selectedPet]!.add(image.path);
-      });
+      }
     }
   }
 
