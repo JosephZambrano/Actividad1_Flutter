@@ -433,7 +433,7 @@ class _PetSectionState extends State<PetSection> {
               child: AlertDialog(
                 backgroundColor: const Color(0xFF203A43),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                title: Text('Añadir Descripción', style: GoogleFonts.poppins(color: Colors.white)),
+                title: Text('Añadir Descripción' , style: GoogleFonts.poppins(color: Colors.white)),
                 content: TextField(
                   controller: descController,
                   style: const TextStyle(color: Colors.white),
